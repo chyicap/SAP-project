@@ -39,23 +39,23 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#">이름 뭐냐</a>
-                </div>
-                <div id="navbar" class="collapse navbar-collapse">
+                <a class="navbar-brand" href="#">Molecular Thermodynamic Laboratory</a>
+                <!-- </div>
+                    <div id="navbar" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
                     <li><a href="#">Chemical Structure 편집</a></li>
                 </ul>
-                </div><!--/.nav-collapse -->
+                </div> -->
             </div>
         </nav>
         <div class="container">
             <div class="page-header">
-                <h1>여기엔 제목이 들어갑니다.</h1>
+                <h1>고흡성수지 물성 예측 패키지</h1>
             </div>
             <div class="col-md-6">
-                <div class="panel panel-info">
+                <div class="panel panel-primary">
                     <div class="panel-heading">
-                        <h3 class="panel-title">MDL</h3>
+                        <h3 class="panel-title">Unit of Chemical structures</h3>
                     </div>
                     <div class="panel-body">
                         <div class="panel panel-default">
@@ -84,21 +84,52 @@
                 </div>
             </div>
             <div class="col-md-6">
+                <div class="d-block">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">그래프</h3>
+                        </div>
+                        <div class="panel-body center">
+                            <canvas id="srChart" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-block center">
+                    <div class="input-group">
+                        <span class="input-group-addon">MC</span>
+                        <input id="mc" type="number" class="form-control" value="50">
+                    </div>
+                    <button type="button" class="btn btn-primary">CVS</button>
+                    <button type="button" class="btn btn-success">Image</button>
+                    <!-- <input type="number" id="mc" value="50"/> MC -->
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="col-md-6">
                 <div class="panel panel-success">
                     <div class="panel-heading">
-                        <h3 class="panel-title">그래프</h3>
+                        <h3 class="panel-title">계산 값</h3>
                     </div>
                     <div class="panel-body">
                         <span id='totalVolume'></span><br>
+                        <ul id='selectedMdl'>
+                        </ul>
                         <span id='totalE'></span><br>
                         <span id='totalDE'></span><br>
                         <span id='totalDEH'></span><br>
                         <span id='totalDES'></span><br>
                         <span id='eT'></span><br>
-                        <ul id='selectedMdl'>
-                        </ul>
-                        온도에 따른 그래프 보여지는 곳
                         <span id='sr'></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Chemical Structures</h3>
+                    </div>
+                    <div class="panel-body center">
                     </div>
                 </div>
             </div>
@@ -110,6 +141,38 @@
         </footer>
         <script src="./bower_components/jquery/dist/jquery.js"></script>
         <script src="./bower_components/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.js"></script>
         <script src="./js/sap.js"></script>
+        <script>
+        const gLabel = [];
+        const gData = [];
+        var ctx = document.getElementById("srChart").getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: gLabel,
+                datasets: [{
+                    label: 'Swelling ratio',
+                    data: gData,
+                    backgroundColor: [
+                        'rgba(0, 0, 0, 0)'
+                    ],
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                    ],
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        });
+    </script>
     </body>
 </html>

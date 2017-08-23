@@ -2,8 +2,8 @@ selected = {};
 let eT;
 
 function secantSolver( func, xstart ) {
-	var x0 = xstart || 1 ;
-	var x1 = x0 + ( (x0>0) ? -0.1 : 0.1 ) ;
+	var x0 = xstart || 1.1 ;
+	var x1 = x0 + ( (x0>0) ? -0.01 : 0.01 ) ;
 	var fx0 = func(x0) ;
 	var fx1 = func(x1) ;
 
@@ -14,29 +14,27 @@ function secantSolver( func, xstart ) {
 		x1 = x2 ;
 		fx0 = fx1 ;
         fx1 = func(x1);
-        console.log(`n ${n}`);
-        console.log(x0);
-        console.log(x1);
 		if( ++n > 10000 ) {
 			throw new Error( "Function " + func + " is not converging." ) ;
 		}
 	// } while(n < 10);
-	} while( Math.abs(x1-x0) > 1e-9 ) ;
+    } while( Math.abs(x1-x0) > 1e-9 && n < 100 ) ;
+
+    if (isNaN(x0) || isNaN(x1)) {
+        console.log('난...알 수가 없어');
+        return null;
+    }
 
 	return x0 ;
 }
 
 function mdl(x) {
-    const mc = 72;
+    // const mc = 72;
+    const mc = Number($('#mc').val());
     function alpha(x) {
-        console.log('alpha');
-        console.log((1/x)*(1/x) + 2*(1/x)*(1/x)*(1/x));
         return (1/x)*(1/x) + 2*(1/x)*(1/x)*(1/x);
     }
     function beta(x) {
-        console.log('beta');
-        console.log()
-        console.log((1/x) + 0.3 * (1/x)*(1/x) + Math.log(1-(1/x)) + (3 * (Math.pow((1/x), 1/3) - (1/x)) * (1 + (1/x)) / 4 + (1/x)*(1/x) * Math.log((1/x)) / 2 + (1/x) * (-3 * (Math.pow((1/x), 1/3) - (1/x)) / 4 + 3 * ( 1 - Math.pow((1/x), -2/3) / 3 ) * ( 1 + (1/x)) / 4 -(1/x)/2 - (1/x) * Math.log((1/x)))) / mc);
         return (1/x) + 0.3 * (1/x)*(1/x) + Math.log(1-(1/x)) + (3 * (Math.pow((1/x), 1/3) - (1/x)) * (1 + (1/x)) / 4 + (1/x)*(1/x) * Math.log((1/x)) / 2 + (1/x) * (-3 * (Math.pow((1/x), 1/3) - (1/x)) / 4 + 3 * ( 1 - Math.pow((1/x), -2/3) / 3 ) * ( 1 + (1/x)) / 4 -(1/x)/2 - (1/x) * Math.log((1/x)))) / mc;
     }
     return alpha(x) * eT + beta(x);
@@ -53,6 +51,7 @@ $(document).ready(() => {
         Object.keys(selected).forEach((key) => {
             totalVolume += mdlData[key].volume * selected[key];
         });
+        if (totalVolume === 0) return;
         $('#totalVolume').html(`Total volume: ${totalVolume}`);
         Object.keys(selected).forEach((key) => {
             const weightOfMdl = mdlData[key].volume * selected[key] / totalVolume;
@@ -65,15 +64,34 @@ $(document).ready(() => {
                 `<li>${key}: ${weightOfMdl}</li>`
             )
         });
+        let prevSr = null;
+        let curSr = null;
+        gLabel.splice(0,gLabel.length);
+        gData.splice(0,gData.length);
+
+        for (let temp = 273.15; temp <= 373.15; temp += 1) {
+            eT = e + (de / (1 + Math.exp(deS - (deH / temp))));
+            curSr = secantSolver(mdl);
+            if (curSr === null) break;
+            if (prevSr === null && Math.abs(prevSr-curSr) >= 10 && false) {
+                continue;
+            } else {
+                prevSr = curSr;
+                gLabel.push(`${temp}`);
+                gData.push(`${curSr}`);
+                // console.log('chart');
+                // console.log(temp, curSr);
+            }
+        }
         eT = e + (de / (1 + Math.exp(deS - (deH / 302.8))));
+        chart.update();
+        const sr = secantSolver(mdl);
         $('#totalE').html(`Total ε<sup>*</sup>: ${e}`);
         $('#totalDE').html(`Total δε<sup>*</sup>: ${de}`);
         $('#totalDEH').html(`Total δε<sup>H</sup>: ${deH}`);
         $('#totalDES').html(`Total δε<sup>S</sup>: ${deS}`);
         $('#eT').html(`ε tilda: ${eT}`);
-        console.log('debug');
-        console.log(e, de, deH, deS, eT);
-        $('#sr').html(`sr: ${secantSolver(mdl, 27)}`);
+        $('#sr').html(sr ? `sr: ${sr}` : '난...알 수가 없어');
     }
     data = {
         'CH3': { volume:13.67, e: -61.6012, de: -51.8462, deH:-12753.7, deS: -44.653},
@@ -108,12 +126,18 @@ $(document).ready(() => {
         );
     });
 
+    $('#mc').change(() => {
+        CalVolume();
+        chart.update();
+    });
     $('#mdlTable tbody input').change(function() {
         const key = $(this).parent().parent().attr('data-mdl');
         const count = Number($(this).val());
         if (count) {
+            $(this).parent().parent().addClass('active');
             selected[key] = Number($(this).val());
         } else {
+            $(this).parent().parent().removeClass('active');
             delete selected[key];
         }
         CalVolume();
